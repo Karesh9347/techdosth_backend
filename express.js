@@ -54,6 +54,34 @@ app.post('/add-question', async (req, res) => {
         res.status(400).json({ error: "Error creating question: " + err.message });
     }
 });
+//add contest
+app.post("/add-contest", async (req, res) => {
+    const { contestName, contestLink, contestLevel } = req.body; // Use camelCase
+
+    try {
+        const newContest = new Contest({
+            contestName, // Use camelCase
+            contestLink, // Use camelCase
+            contestLevel // Use camelCase
+        });
+
+        await newContest.save();
+        res.status(201).json({ message: "Contest added successfully" });
+    } catch (err) {
+        res.status(500).json({ error: `Error in creating contest: ${err.message}` });
+    }
+});
+
+
+//get contests  
+app.get("/get-contest", async (req, res) => {
+    try {
+      const contests = await Contest.find();
+      res.status(200).json(contests);  // Status code 200 for successful retrieval
+    } catch (err) {
+      res.status(500).json({ error: "Unable to fetch contests: " + err.message });
+    }
+  });
 app.get('/questions/:id', async (req, res) => {
     const { id } = req.params;
 
