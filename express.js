@@ -3,13 +3,14 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const Questions = require("./schema");
-const Coder = require("./usermodel"); // Ensure this path is correct
+const Coder = require("./usermodel"); 
+const Contest=require("./contestSchema")
 
 dotenv.config();
 
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: '10mb' })); // Set the limit to 10 MB
+app.use(express.json({ limit: '10mb' })); 
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 const MONGO_URI = 'mongodb+srv://naresh9848:Karesh9848@cluster1.94mleuj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster1';
@@ -72,7 +73,34 @@ app.get('/questions/:id', async (req, res) => {
         res.status(500).json({ message: 'Server error, please try again later' });
     }
 });
+//add contest
+app.post("/add-contest", async (req, res) => {
+    const { contestName, contestLink, contestLevel } = req.body; // Use camelCase
 
+    try {
+        const newContest = new Contest({
+            contestName, // Use camelCase
+            contestLink, // Use camelCase
+            contestLevel // Use camelCase
+        });
+
+        await newContest.save();
+        res.status(201).json({ message: "Contest added successfully" });
+    } catch (err) {
+        res.status(500).json({ error: `Error in creating contest: ${err.message}` });
+    }
+});
+
+
+//get contests  
+app.get("/get-contest", async (req, res) => {
+    try {
+      const contests = await Contest.find();
+      res.status(200).json(contests);  // Status code 200 for successful retrieval
+    } catch (err) {
+      res.status(500).json({ error: "Unable to fetch contests: " + err.message });
+    }
+  });
 
 // Register a new user
 app.post('/register', async (req, res) => {
