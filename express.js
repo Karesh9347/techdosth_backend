@@ -25,6 +25,44 @@ mongoose.connect(MONGO_URI, {
 .catch((err) => {
     console.error("Error connecting to MongoDB:", err);
 });
+//add aptitude questions
+app.post("/add-aptitude", async (req, res) => {
+    const { questionName, difficultyLevel, description, solution, hashtags } = req.body;
+    
+    // Check for required fields
+    if (!questionName || !difficultyLevel || !description || !solution) {
+        return res.status(400).json({ error: "All fields are required" });
+    }
+
+    try {
+        // Create a new Aptitude question with hashtags (if provided)
+        const newAQ = new Aptitude({
+            questionName,
+            difficultyLevel,
+            description,
+            solution,
+            hashtags: hashtags ? hashtags : [] // Default to an empty array if hashtags are not provided
+        });
+
+        // Save the new question in the database
+        await newAQ.save();
+
+        // Respond with a success message and the saved question
+        res.status(201).json({ message: "Aptitude question added successfully", data: newAQ });
+    } catch (err) {
+        res.status(500).json({ error: "Error creating question: " + err.message });
+    }
+});
+//get all aptitude questions
+app.get("/get-aptitude",async(req,res)=>{
+    try{
+        const questions=await Aptitude.find()
+        res.status(200).json(questions)
+    }catch(err){
+        res.status(500).json({error:"err in getting aptitude questins"+err.message})
+    }
+})
+
 //get all questions
 app.get('/questions', async (req, res) => {
     try {
