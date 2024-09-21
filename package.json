@@ -2,9 +2,10 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js", 
+  "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js",
+    "start": "node index.js",  // For production
+    "dev": "nodemon index.js",  // For local development
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -17,5 +18,8 @@
     "express": "^4.19.2",
     "mongoose": "^8.5.4",
     "nodemon": "^3.1.4"
+  },
+  "engines": {
+    "node": "20.x"
   }
 }
