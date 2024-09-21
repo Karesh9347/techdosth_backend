@@ -1,12 +1,15 @@
 const express = require("express");
 const mongoose = require("mongoose");
-
+const cors = require("cors");
+const dotenv = require("dotenv");
 const Questions = require("./schema");
-const Coder = require("./usermodel"); 
+const Coder = require("./usermodel"); // Ensure this path is correct
 const Contest=require("./contestSchema")
-
+const Aptitude=require("./aptitudeSchema")
+dotenv.config();
 
 const app = express();
+app.use(cors());
 
 app.use(express.json({ limit: '10mb' })); 
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
