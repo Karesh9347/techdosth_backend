@@ -64,6 +64,26 @@ app.get("/get-aptitude",async(req,res)=>{
         res.status(500).json({error:"err in getting aptitude questins"+err.message})
     }
 })
+//get aptitude question by its id
+app.get('/aquestions/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const question = await Aptitude.findById(id);
+        if (!question) {
+            console.log('Question not found');
+            return res.status(404).json({ message: 'Question not found' });
+        }
+
+        res.status(200).json(question);
+    } catch (err) {
+        // Log the complete error for debugging
+        console.error("Error fetching question:", err.stack);
+
+        // Send an appropriate error response
+        res.status(500).json({ message: 'Server error, please try again later' });
+    }
+});
 
 //get all questions
 app.get('/questions', async (req, res) => {
