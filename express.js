@@ -128,11 +128,11 @@ app.get('/contest/:id', async (req, res) => {
     }
 });
 // get one aptitude question
-app.get('/contest/:id', async (req, res) => {
+app.get('/aquestions/:id', async (req, res) => {
     const { id } = req.params;
 
     try {
-        const question = await Contest.findById(id);
+        const question = await Aptitude.findById(id);
         if (!question) {
             console.log('Question not found');
             return res.status(404).json({ message: 'Question not found' });
