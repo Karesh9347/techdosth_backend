@@ -10,8 +10,7 @@ dotenv.config();
 
 const app = express();
 app.use(cors());
-
-app.use(express.json({ limit: '10mb' })); 
+app.use(express.json({ limit: '20mb' })); // Set the limit to 10 MB
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 const MONGO_URI = 'mongodb+srv://naresh9848:Karesh9848@cluster1.94mleuj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster1';
@@ -20,11 +19,9 @@ const MONGO_URI = 'mongodb+srv://naresh9848:Karesh9848@cluster1.94mleuj.mongodb.
 mongoose.connect(MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true
-})
-.then(() => {
+}).then(() => {
     console.log("MongoDB connected");
-})
-.catch((err) => {
+}).catch((err) => {
     console.error("Error connecting to MongoDB:", err);
 });
 //add aptitude questions
@@ -64,26 +61,6 @@ app.get("/get-aptitude",async(req,res)=>{
         res.status(500).json({error:"err in getting aptitude questins"+err.message})
     }
 })
-//get aptitude question by its id
-app.get('/aquestions/:id', async (req, res) => {
-    const { id } = req.params;
-
-    try {
-        const question = await Aptitude.findById(id);
-        if (!question) {
-            console.log('Question not found');
-            return res.status(404).json({ message: 'Question not found' });
-        }
-
-        res.status(200).json(question);
-    } catch (err) {
-        // Log the complete error for debugging
-        console.error("Error fetching question:", err.stack);
-
-        // Send an appropriate error response
-        res.status(500).json({ message: 'Server error, please try again later' });
-    }
-});
 
 //get all questions
 app.get('/questions', async (req, res) => {
@@ -114,6 +91,7 @@ app.post('/add-question', async (req, res) => {
         res.status(400).json({ error: "Error creating question: " + err.message });
     }
 });
+//get question individually
 app.get('/questions/:id', async (req, res) => {
     const { id } = req.params;
 
@@ -131,6 +109,45 @@ app.get('/questions/:id', async (req, res) => {
         res.status(500).json({ message: 'Server error, please try again later' });
     }
 });
+//get single contest
+app.get('/contest/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+      
+
+        const question = await Contest.findById(id);
+        if (!question) {
+            console.log('Question not found');
+            return res.status(404).json({ message: 'Question not found' });
+        }
+        res.json(question);
+    } catch (err) {
+        console.error("Error fetching question:", err.message);
+        res.status(500).json({ message: 'Server error, please try again later' });
+    }
+});
+// get one aptitude question
+app.get('/contest/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const question = await Contest.findById(id);
+        if (!question) {
+            console.log('Question not found');
+            return res.status(404).json({ message: 'Question not found' });
+        }
+
+        res.status(200).json(question);
+    } catch (err) {
+        // Log the complete error for debugging
+        console.error("Error fetching question:", err.stack);
+
+        // Send an appropriate error response
+        res.status(500).json({ message: 'Server error, please try again later' });
+    }
+});
+
 
 //add contest
 app.post("/add-contest", async (req, res) => {
@@ -138,9 +155,9 @@ app.post("/add-contest", async (req, res) => {
 
     try {
         const newContest = new Contest({
-            contestName, 
-            contestLink, 
-            contestLevel 
+            contestName, // Use camelCase
+            contestLink, // Use camelCase
+            contestLevel // Use camelCase
         });
 
         await newContest.save();
@@ -155,7 +172,7 @@ app.post("/add-contest", async (req, res) => {
 app.get("/get-contest", async (req, res) => {
     try {
       const contests = await Contest.find();
-      res.status(200).json(contests);  
+      res.status(200).json(contests);  // Status code 200 for successful retrieval
     } catch (err) {
       res.status(500).json({ error: "Unable to fetch contests: " + err.message });
     }
