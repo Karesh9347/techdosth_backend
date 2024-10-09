@@ -1,3 +1,4 @@
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -6,6 +7,10 @@ const Questions = require("./schema");
 const Coder = require("./usermodel"); // Ensure this path is correct
 const Contest=require("./contestSchema")
 const Aptitude=require("./aptitudeSchema")
+const interview=require("./interview")
+const Query=require("./querySchema")
+const Problems=require("./problemSchema")
+const { exec } = require('child_process');
 dotenv.config();
 
 const app = express();
@@ -24,6 +29,224 @@ mongoose.connect(MONGO_URI, {
 }).catch((err) => {
     console.error("Error connecting to MongoDB:", err);
 });
+
+//excute python code
+const { Pool } = require('pg');
+
+const pool = new Pool({
+  user: 'naresh',
+  host: 'ap-south-1.af7926a7-2637-409c-9907-ca9b91a60bd4.aws.yugabyte.cloud',
+  database: 'yugabyte',
+  password: 'Karesh@9848',
+  port: 5433,
+  ssl: {
+    rejectUnauthorized: false
+  },
+  connectionTimeoutMillis: 20000, // 20 seconds timeout
+});
+
+// Event listener for connection success
+const connectAndExecute = async () => {
+    const client = await pool.connect(); // Get a client from the pool
+    try {
+      console.log('Connected to YugabyteDB successfully!');
+  
+     
+    } catch (err) {
+      console.error('Error executing query:', err.message);
+    } finally {
+      client.release(); // Release the client back to the pool
+      console.log('Connection released back to the pool.');
+    }
+  };
+  
+  // Call the function to connect and execute the query
+  connectAndExecute();
+
+// Example function to run queries using the pool
+const executeQueryWithPool = async (query) => {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(query);
+    return result.rows;
+  } catch (err) {
+    console.error('Error executing query:', err.message);
+    throw err;
+  } finally {
+    client.release();
+  }
+};
+//excute python
+const { spawn } = require('child_process');
+app.post('/execute-python', (req, res) => {
+  const code = req.body.code; // Assume code is passed from frontend
+
+  // Save code to a temporary Python file
+  const fs = require('fs');
+  const path = require('path');
+  const tempFilePath = path.join(__dirname, 'temp_script.py');
+  fs.writeFileSync(tempFilePath, code);
+
+  // Execute the Python script
+  const pythonProcess = spawn('python', [tempFilePath]);
+
+  let output = '';
+  let error = '';
+
+  pythonProcess.stdout.on('data', (data) => {
+    output += data.toString();
+  });
+
+  pythonProcess.stderr.on('data', (data) => {
+    error += data.toString();
+  });
+
+  pythonProcess.on('close', (code) => {
+    if (code === 0) {
+      res.json({ output });
+    } else {
+      res.status(500).json({ error: error || 'An error occurred' });
+    }
+  });
+});
+//add problem of the day
+app.post("/add-problem-of-the-day", async (req, res) => {
+  const { QuestionName, actualcode, videolink, hashtags, difficulty, description, driverCode, solution, complexities } = req.body;
+
+  try {
+    const newProblem = new Problems({
+      QuestionName,
+      actualcode,
+      videolink,
+      hashtags,
+      difficulty,
+      description,
+      driverCode,
+      solution,
+      complexities,
+    });
+
+    const savedProblem = await newProblem.save();
+    res.status(201).json(savedProblem);
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ message: "Error adding problem", error });
+  }
+});
+
+
+// Get all problems
+app.get("/get-all-problems", async (req, res) => {
+  try {
+    const problems = await Problems.find();
+    res.status(200).json(problems);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching problems", error });
+  }
+});
+
+// Get a single problem by ID
+app.get("/get-problem/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const problem = await Problems.findById(id);
+    if (problem) {
+      res.status(200).json(problem);
+    } else {
+      res.status(404).json({ message: "Problem not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching problem", error });
+  }
+});
+//add query of the day
+app.post('/add-query', async (req, res) => {
+    const { shortName, description, actualQuery, difficultyLevel, relatedTopics } = req.body;
+  
+    try {
+      const newQuery = new Query({
+        shortName,
+        description,
+        actualQuery,
+        difficultyLevel,
+        relatedTopics
+      });
+  
+      const savedQuery = await newQuery.save(); // Ensure you call save on the instance
+      res.status(201).json(savedQuery);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ message: 'Error adding query', error });
+    }
+  });
+  //get all ueries
+  app.get('/get-all-queries', async (req, res) => {
+    try {
+      const queries = await Query.find(); 
+      res.status(200).json(queries); 
+    } catch (error) {
+      console.error('Error fetching queries:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+  
+  
+// Get query by ID (GET /get-query/:id)
+  app.get('/get-query/:id', async (req, res) => {
+    try {
+      const query = await Query.findById(req.params.id);
+      if (!query) {
+        return res.status(404).json({ message: 'Query not found' });
+      }
+  
+      // Send the query details back as a response
+      res.status(200).json(query);
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching query', error });
+    }
+  });
+//excute query 
+app.post('/execute-query', async (req, res) => {
+    const { query } = req.body;
+  
+    try {
+      const result = await executeQueryWithPool(query); // Your DB query execution logic
+      return res.json({ result }); // Return result on success
+    } catch (err) {
+      console.log('Error details:', err.code); // Log the full error for debugging
+      
+      // Return a response with the error message, but status 200 to handle in frontend
+      if (err.message) {
+        res.status(200).json({ error: `Error executing query: ${err.message}` });
+      } else {
+        res.status(500).json({ error: 'An unexpected error occurred.' });
+      }
+    }
+  });
+  //add interview
+app.post('/add-interview', async (req, res) => {
+    const { subject, question, answer, resource } = req.body;
+
+    try {
+        const newInterview = new interview({ subject, question, answer, resource });
+        await newInterview.save();
+        res.status(201).json({ message: 'Interview added successfully', interview: newInterview });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Route to get all interviews
+app.get('/get-interview', async (req, res) => {
+    try {
+        const interviews = await interview.find();
+        res.status(200).json(interviews);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+  
 //add aptitude questions
 app.post("/add-aptitude", async (req, res) => {
     const { questionName, difficultyLevel, description, solution, hashtags } = req.body;
