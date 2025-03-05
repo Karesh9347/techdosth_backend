@@ -38,7 +38,7 @@ const pool = new Pool({
   host: 'us-east-1.817ee814-63db-4082-8bbf-92d3f72d9052.aws.yugabyte.cloud',
   database: 'yugabyte',
   password: 'oWEZSiDkZ9VNIcQZby2lZ9-IICGBCY',
-  port: 9042,
+  port: 5433,
   ssl: {
     rejectUnauthorized: false
   },
