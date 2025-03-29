@@ -34,10 +34,10 @@ mongoose.connect(MONGO_URI, {
 const { Pool } = require('pg');
 
 const pool = new Pool({
-  user: 'admin',
-  host: 'us-east-1.817ee814-63db-4082-8bbf-92d3f72d9052.aws.yugabyte.cloud',
+  user: 'naresh',
+  host: 'ap-south-2.83614c59-4e5b-4bc4-83c1-e8aaa69a5ace.aws.yugabyte.cloud',
   database: 'yugabyte',
-  password: 'oWEZSiDkZ9VNIcQZby2lZ9-IICGBCY',
+  password: 'Karesh@9848',
   port: 5433,
   ssl: {
     rejectUnauthorized: false
